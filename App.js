@@ -1,25 +1,45 @@
 import React from "react";
-import { StyleSheet, Text, View, Button } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import {
+  usePlagueStore,
+  useIsInitialized,
+} from "./stores/hooks/usePlagueStore";
+import { getSnapshot } from "mobx-state-tree";
+import styled from "styled-components/native";
+
+const StyledButton = styled.Button`
+  margin: 1rem;
+  color: #fff;
+  background-color: #fff;
+`;
+
+const Container = styled.View`
+  flex: 1;
+  background-color: #000;
+  align-items: center;
+  justify-content: center;
+`;
 
 export default function App() {
-  const [state, setState] = React.useState(false);
+  const store = usePlagueStore();
+
+  const initialized = useIsInitialized();
+
+  if (!initialized) {
+    return (
+      <Container>
+        <Text>Carregando</Text>
+      </Container>
+    );
+  }
+
+  const plagues = getSnapshot(store.plagues);
 
   return (
-    <View style={styles.container}>
-      {state ? (
-        <Text>Voce clicou</Text>
-      ) : (
-        <Button title={"Click Me!"} onPress={() => setState(true)} />
-      )}
-    </View>
+    <Container>
+      {plagues.map(({ name, id }) => {
+        return <StyledButton title={name} onPress={() => console.log(id)} />;
+      })}
+    </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
