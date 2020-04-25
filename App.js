@@ -5,15 +5,9 @@ import {
   useIsInitialized,
 } from "./stores/hooks/usePlagueStore";
 import { getSnapshot } from "mobx-state-tree";
-import styled from "styled-components/native";
 import Container from "./components/Container";
+import Button from "./components/Button";
 import * as Location from "expo-location";
-
-const StyledButton = styled.Button`
-  margin: 1rem;
-  color: #fff;
-  background-color: #fff;
-`;
 
 export default function App() {
   const [location, setLocation] = React.useState(null);
@@ -50,7 +44,7 @@ export default function App() {
     <Container>
       {plagues.map(({ name, id }, index) => {
         return (
-          <StyledButton
+          <Button
             key={index}
             title={name}
             onPress={() => console.log(location)}
