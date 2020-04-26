@@ -1,13 +1,9 @@
 {
   "expo": {
-    "name": "my-new-project",
-    "slug": "my-new-project",
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
-    "version": "1.0.0",
+    "name": "farm-app-field-user",
+    "slug": "farm-app-field-user",
+    "platforms": ["ios", "android", "web"],
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -18,11 +14,13 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.citrussinensis.fielduser"
+    },
+    "android": {
+      "package": "com.citrussinensis.fielduser"
     }
   }
 }

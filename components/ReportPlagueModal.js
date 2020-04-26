@@ -21,7 +21,7 @@ const ReportPlagueModal = ({ plague }) => {
   const [modalVisible, setModalVisible] = React.useState(false);
   const [reporting, setReporting] = React.useState(false);
 
-  const { name } = plague;
+  const { name, id } = plague;
   const store = usePlagueStore();
 
   const handleReportSubmit = async () => {
@@ -32,6 +32,7 @@ const ReportPlagueModal = ({ plague }) => {
     const report = Object.assign({}, location, {
       visited: false,
       fixed: false,
+      plague: id,
       date: Date.now(),
     });
 
