@@ -6,26 +6,23 @@ import {
 } from "./stores/hooks/usePlagueStore";
 import { getSnapshot } from "mobx-state-tree";
 import Container from "./components/Container";
-import Button from "./components/Button";
 import * as Location from "expo-location";
+import ReportPlagueModal from "./components/ReportPlagueModal";
 
 export default function App() {
-  const [location, setLocation] = React.useState(null);
-
   React.useEffect(() => {
+    // Ask for user permission to use geolocation
     const getPermission = async () => {
       let { status } = await Location.requestPermissionsAsync();
       if (status !== "granted") {
         setErrorMsg("Permission to access location was denied");
       }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
     };
 
     getPermission();
   }, []);
 
+  // Use the plagues from the api to generate the buttons
   const store = usePlagueStore();
 
   const initialized = useIsInitialized();
@@ -38,18 +35,13 @@ export default function App() {
     );
   }
 
+  // Take a snapshot to avoid using removed objects from MOBX
   const plagues = getSnapshot(store.plagues);
 
   return (
     <Container>
-      {plagues.map(({ name, id }, index) => {
-        return (
-          <Button
-            key={index}
-            title={name}
-            onPress={() => console.log(location)}
-          />
-        );
+      {plagues.map((plague, index) => {
+        return <ReportPlagueModal key={index} plague={plague} />;
       })}
     </Container>
   );

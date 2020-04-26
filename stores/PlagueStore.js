@@ -36,8 +36,18 @@ export const PlagueStore = types
       }
     });
 
+    const sendPlagueReport = flow(function* (report) {
+      try {
+        yield database.ref("reports").push(report);
+      } catch (e) {
+        self.loading = false;
+        console.log("login -> e", e);
+      }
+    });
+
     return {
       fecthPlagues,
+      sendPlagueReport,
     };
   })
   .actions((self) => ({
