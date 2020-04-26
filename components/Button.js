@@ -6,7 +6,7 @@ const StyledTouchableHighlight = styled.TouchableHighlight`
   align-items: center;
   justify-content: center;
 
-  min-width: 200px;
+  min-width: 250px;
   min-height: 75px;
   margin: 15px 0;
 
@@ -17,6 +17,7 @@ const StyledTouchableHighlight = styled.TouchableHighlight`
 const ButtonText = styled.Text`
   color: #fff;
   font-weight: bold;
+  font-size: 36px;
 `;
 
 const Button = ({ title, onPress }) => {

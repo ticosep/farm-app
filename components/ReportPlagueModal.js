@@ -1,32 +1,29 @@
 import React from "react";
 import Button from "./Button";
-import { Modal, Alert } from "react-native";
+import { Modal } from "react-native";
+
 import styled from "styled-components/native";
 import { usePlagueStore } from "../stores/hooks/usePlagueStore";
 import * as Location from "expo-location";
+import { useSound, useSendSound, useClickSound } from "../utils/useSounds";
 
 const ReportText = styled.Text`
   font-weight: bold;
   font-size: 36px;
 `;
 
-const ModalContentWrapper = styled.View`
-  display: flex;
-  height: 80%;
-  justify-content: center;
-  align-items: center;
-`;
-
 const ReportPlagueModal = ({ plague }) => {
   const [modalVisible, setModalVisible] = React.useState(false);
-  const [reporting, setReporting] = React.useState(false);
 
   const { name, id } = plague;
   const store = usePlagueStore();
 
   const handleReportSubmit = async () => {
-    // Set the state to reporting for user wait
-    setReporting(true);
+    // Emit the click sound
+    useClickSound();
+
+    // Show the modal with the reporting message
+    setModalVisible(true);
 
     const location = await Location.getCurrentPositionAsync({});
     const report = Object.assign({}, location, {
@@ -37,30 +34,20 @@ const ReportPlagueModal = ({ plague }) => {
     });
 
     store.sendPlagueReport(report).then(() => {
-      // Return the app default after the report
-      Alert.alert("Praga reportada com sucesso!");
-      setReporting(false);
-      setModalVisible(false);
+      // Return the app default after the report after the send sound
+      useSendSound().then(() => {
+        setModalVisible(false);
+      });
     });
   };
 
-  const modalContent = reporting ? (
-    <ReportText>Reportando...</ReportText>
-  ) : (
-    <React.Fragment>
-      <ReportText>{name}</ReportText>
-      <Button title="Reportar" onPress={handleReportSubmit} />
-      <Button title="Cancelar" onPress={() => setModalVisible(false)} />
-    </React.Fragment>
-  );
   return (
     <React.Fragment>
       <Modal animationType="slide" transparent={false} visible={modalVisible}>
-        <ReportText>Voce deseja reportar a praga?</ReportText>
-        <ModalContentWrapper>{modalContent}</ModalContentWrapper>
+        <ReportText>Reportando...</ReportText>
       </Modal>
 
-      <Button title={name} onPress={() => setModalVisible(true)} />
+      <Button title={name} onPress={handleReportSubmit} />
     </React.Fragment>
   );
 };
