@@ -123,9 +123,13 @@ export const PlagueStore = types
       }
     });
 
+    const initializeCachedReports = (reports) => {
+      self.cachedReports = reports || [];
+    };
     return {
       fecthPlagues,
       sendPlagueReport,
+      initializeCachedReports,
     };
   })
   .actions((self) => ({
@@ -134,17 +138,24 @@ export const PlagueStore = types
 
       AsyncStorage.getItem(ASYNC_STORAGE_KEY)
         .then((reports) => {
-          console.log(reports);
+          let cachedReportsFromStorage = JSON.parse(reports);
+          cachedReportsFromStorage = Object.values(cachedReportsFromStorage);
+
+          self.initializeCachedReports(cachedReportsFromStorage);
 
           autorun(() => {
             if (self.cachedReports.length) {
-              console.log(self.cachedReports);
-              AsyncStorage.setItem(ASYNC_STORAGE_KEY, [...self.cachedReports]);
+              const cachedReportsStorage = { ...self.cachedReports };
+
+              AsyncStorage.setItem(
+                ASYNC_STORAGE_KEY,
+                JSON.stringify(cachedReportsStorage)
+              );
             }
           });
         })
-        .catch(() => {
-          // self.cachedReports = [];
+        .catch((e) => {
+          self.initializeCachedReports([]);
         });
     },
   }));
