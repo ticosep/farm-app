@@ -68,12 +68,17 @@ export const PlagueStore = types
         }
 
         self.loading = false;
-        return { message: "Relatorios enviados com sucesso!", send: true };
+        return {
+          title: "Sucesso!",
+          message: "Todos relatórios enviados",
+          send: true,
+        };
       } catch (e) {
         self.loading = false;
         return {
+          title: "Conexao com a internet inexistente ou de baixa qualidade!",
           message:
-            "Conexao com a internet inexistente ou de baixa qualidade, relatorios nao serão enviados",
+            "Relatórios não serão enviados, tentar novamente com uma conexão melhor",
           send: false,
         };
       }

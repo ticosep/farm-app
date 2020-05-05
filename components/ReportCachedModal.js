@@ -30,12 +30,12 @@ const ReportCachedModal = () => {
 
     if (!cachedreports.length) {
       setModalVisible(false);
-      Alert.alert("Nenhum relatorio pendente");
+      Alert.alert("Nenhum relatório pendente");
 
       return;
     }
 
-    store.sendCachedReports().then(({ message, send }) => {
+    store.sendCachedReports().then(({ title, message, send }) => {
       if (send) {
         useSendSound().then(() => {
           setModalVisible(false);
@@ -46,14 +46,14 @@ const ReportCachedModal = () => {
         });
       }
 
-      Alert.alert(message);
+      Alert.alert(title, message);
     });
   };
 
   return (
     <React.Fragment>
       <Modal animationType="slide" transparent={false} visible={modalVisible}>
-        <ReportText>{`Enviando relatorio, restam: ${cachedreports.length}`}</ReportText>
+        <ReportText>{`Enviando relatórios, restam: ${cachedreports.length}`}</ReportText>
       </Modal>
 
       <Button
