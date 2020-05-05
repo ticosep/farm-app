@@ -21,3 +21,14 @@ export const useSendSound = async () => {
     console.log(error);
   }
 };
+
+export const useErrorSound = async () => {
+  const soundObject = new Audio.Sound();
+  try {
+    await soundObject.loadAsync(require("../assets/sounds/error.wav"));
+    await soundObject.playAsync();
+  } catch (error) {
+    // An error occurred!
+    console.log(error);
+  }
+};

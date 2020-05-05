@@ -5,7 +5,7 @@ import { Modal } from "react-native";
 import styled from "styled-components/native";
 import { usePlagueStore } from "../stores/hooks/usePlagueStore";
 import * as Location from "expo-location";
-import { useSound, useSendSound, useClickSound } from "../utils/useSounds";
+import { useErrorSound, useSendSound, useClickSound } from "../utils/useSounds";
 
 const ReportText = styled.Text`
   font-weight: bold;
@@ -33,11 +33,17 @@ const ReportPlagueModal = ({ plague }) => {
       date: Date.now(),
     });
 
-    store.sendPlagueReport(report).then(() => {
-      // Return the app default after the report after the send sound
-      useSendSound().then(() => {
-        setModalVisible(false);
-      });
+    store.sendPlagueReport(report).then((response) => {
+      if (response) {
+        // Return the app default after the report after the send sound
+        useSendSound().then(() => {
+          setModalVisible(false);
+        });
+      } else {
+        useErrorSound().then(() => {
+          setModalVisible(false);
+        });
+      }
     });
   };
 

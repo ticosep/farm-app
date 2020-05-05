@@ -14,3 +14,9 @@ export const useIsLoading = () => {
 
   return useObserver(() => store.loading);
 };
+
+export const useCachedReports = () => {
+  const store = usePlagueStore();
+
+  return useObserver(() => store.cachedReports);
+};

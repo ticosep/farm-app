@@ -8,6 +8,7 @@ import { getSnapshot } from "mobx-state-tree";
 import Container from "./components/Container";
 import * as Location from "expo-location";
 import ReportPlagueModal from "./components/ReportPlagueModal";
+import ReportCachedModal from "./components/ReportCachedModal";
 
 export default function App() {
   React.useEffect(() => {
@@ -43,6 +44,7 @@ export default function App() {
       {plagues.map((plague, index) => {
         return <ReportPlagueModal key={index} plague={plague} />;
       })}
+      <ReportCachedModal />
     </Container>
   );
 }

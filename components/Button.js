@@ -11,7 +11,7 @@ const StyledTouchableHighlight = styled.TouchableHighlight`
   margin: 15px 0;
 
   border-radius: 10px;
-  background-color: #000;
+  background-color: ${(props) => props.backgroundColor};
 `;
 
 const ButtonText = styled.Text`
@@ -20,9 +20,12 @@ const ButtonText = styled.Text`
   font-size: 36px;
 `;
 
-const Button = ({ title, onPress }) => {
+const Button = ({ title, onPress, backgroundColor = "#000" }) => {
   return (
-    <StyledTouchableHighlight onPress={onPress}>
+    <StyledTouchableHighlight
+      onPress={onPress}
+      backgroundColor={backgroundColor}
+    >
       <ButtonText>{title}</ButtonText>
     </StyledTouchableHighlight>
   );
