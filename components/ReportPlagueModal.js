@@ -21,11 +21,11 @@ const ReportPlagueModal = ({ plague }) => {
   const handleReportSubmit = async () => {
     // Emit the click sound
     useClickSound();
-
     // Show the modal with the reporting message
     setModalVisible(true);
 
     const location = await Location.getCurrentPositionAsync({});
+
     const report = Object.assign({}, location, {
       visited: false,
       fixed: false,

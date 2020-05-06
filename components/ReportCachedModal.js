@@ -16,10 +16,16 @@ const ReportText = styled.Text`
 `;
 
 const ReportCachedModal = () => {
-  const [modalVisible, setModalVisible] = React.useState(false);
-
   const store = usePlagueStore();
   const cachedreports = useCachedReports();
+
+  const [modalVisible, setModalVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    if (cachedreports.length) {
+      Alert.alert("Relatórios precisando de envio!", "Aperte enviar");
+    }
+  }, []);
 
   const handleReportSubmit = async () => {
     // Emit the click sound

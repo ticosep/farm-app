@@ -2,13 +2,28 @@ import { types, flow } from "mobx-state-tree";
 import { database } from "../firebase/firebase";
 import { checkInternetConnection } from "react-native-offline";
 import { promiseTimeout } from "../utils/promiseTimeout";
-import { AsyncStorage } from "react-native";
+import * as SecureStore from "expo-secure-store";
 import { autorun } from "mobx";
+import NetInfo from "@react-native-community/netinfo";
 
-const IMMEDIATE_INTERNET_GET_TIMEOUT = 1000;
+const IMMEDIATE_INTERNET_GET_TIMEOUT = 2000;
 const NOT_IMMEDIATE_INTERNET_GET_TIMEOUT = 2000;
 
 const ASYNC_STORAGE_KEY = "MISSING_SEND_REPORT";
+
+const ALERT_MESSAGES = {
+  ERROR_SENDING: {
+    title: "Conexao com a internet inexistente ou de baixa qualidade!",
+    message:
+      "Relatórios não serão enviados, tentar novamente com uma conexão melhor",
+    send: false,
+  },
+  SUCESS_SENDING: {
+    title: "Sucesso!",
+    message: "Todos relatórios enviados",
+    send: true,
+  },
+};
 
 const Plague = types.model({
   id: types.maybe(types.string),
@@ -53,6 +68,14 @@ export const PlagueStore = types
 
       // Run in all the chached reports and send to the api
       try {
+        const { isConnected } = yield NetInfo.fetch();
+
+        if (!isConnected) {
+          self.loading = false;
+
+          return ALERT_MESSAGES.ERROR_SENDING;
+        }
+
         yield self.checkInternet(
           NOT_IMMEDIATE_INTERNET_GET_TIMEOUT,
           "https://google.com",
@@ -68,19 +91,10 @@ export const PlagueStore = types
         }
 
         self.loading = false;
-        return {
-          title: "Sucesso!",
-          message: "Todos relatórios enviados",
-          send: true,
-        };
+        return ALERT_MESSAGES.SUCESS_SENDING;
       } catch (e) {
         self.loading = false;
-        return {
-          title: "Conexao com a internet inexistente ou de baixa qualidade!",
-          message:
-            "Relatórios não serão enviados, tentar novamente com uma conexão melhor",
-          send: false,
-        };
+        return ALERT_MESSAGES.ERROR_SENDING;
       }
     });
 
@@ -109,6 +123,15 @@ export const PlagueStore = types
 
     const sendPlagueReport = flow(function* (report) {
       try {
+        const { isConnected } = yield NetInfo.fetch();
+
+        if (!isConnected) {
+          self.cachedReports.push(report);
+          self.loading = false;
+
+          return false;
+        }
+
         yield self.checkInternet(
           IMMEDIATE_INTERNET_GET_TIMEOUT,
           "https://farm-app-87f99.firebaseio.com",
@@ -141,18 +164,20 @@ export const PlagueStore = types
     afterCreate: () => {
       self.fecthPlagues();
 
-      AsyncStorage.getItem(ASYNC_STORAGE_KEY)
+      SecureStore.getItemAsync(ASYNC_STORAGE_KEY)
         .then((reports) => {
-          let cachedReportsFromStorage = JSON.parse(reports);
-          cachedReportsFromStorage = Object.values(cachedReportsFromStorage);
+          if (reports) {
+            let cachedReportsFromStorage = JSON.parse(reports);
+            cachedReportsFromStorage = Object.values(cachedReportsFromStorage);
 
-          self.initializeCachedReports(cachedReportsFromStorage);
+            self.initializeCachedReports(cachedReportsFromStorage);
+          }
 
           autorun(() => {
             if (self.cachedReports.length) {
               const cachedReportsStorage = { ...self.cachedReports };
 
-              AsyncStorage.setItem(
+              SecureStore.setItemAsync(
                 ASYNC_STORAGE_KEY,
                 JSON.stringify(cachedReportsStorage)
               );
