@@ -5,7 +5,7 @@ import { Modal, Alert } from "react-native";
 import styled from "styled-components/native";
 import { usePlagueStore } from "../stores/hooks/usePlagueStore";
 import * as Location from "expo-location";
-import { useSendSound, useClickSound } from "../utils/useSounds";
+import { useSendSound, useClickSound, useErrorSound } from "../utils/useSounds";
 
 const DELAY_TIME = 1000;
 
@@ -30,6 +30,10 @@ const ReportPlagueModal = ({ plague }) => {
     const location = await Location.getCurrentPositionAsync({}).catch((e) => {
       setModalVisible(false);
       Alert.alert("Sem sinal de gps!", "Relatorios não serão enviados");
+
+      useErrorSound();
+
+      return;
     });
 
     const report = Object.assign({}, location, {

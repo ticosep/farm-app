@@ -93,14 +93,14 @@ export const PlagueStore = types
 
         // If the app has no connection we need to get the last plagues stored in the memory
         if (!isConnected) {
-          let storedPlagues = yield AsyncStorage.getItem(
+          const storedPlagues = yield AsyncStorage.getItem(
             ASYNC_STORAGE_KEY_PLAGUES
           );
           if (storedPlagues) {
-            storedPlagues = JSON.parse(storedPlagues);
-            storedPlagues = Object.values(cachedReportsFromStorage);
+            const storedPlaguesObj = JSON.parse(storedPlagues);
+            const storedPlaguesArray = Object.values(storedPlaguesObj);
 
-            self.plagues = storedPlagues;
+            self.plagues = storedPlaguesArray;
           }
         } else {
           // Here we get the current plagues from the API and store it in the app memory
