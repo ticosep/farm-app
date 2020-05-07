@@ -1,11 +1,13 @@
 import React from "react";
 import Button from "./Button";
-import { Modal } from "react-native";
+import { Modal, Alert } from "react-native";
 
 import styled from "styled-components/native";
 import { usePlagueStore } from "../stores/hooks/usePlagueStore";
 import * as Location from "expo-location";
-import { useErrorSound, useSendSound, useClickSound } from "../utils/useSounds";
+import { useSendSound, useClickSound } from "../utils/useSounds";
+
+const DELAY_TIME = 1000;
 
 const ReportText = styled.Text`
   font-weight: bold;
@@ -21,30 +23,30 @@ const ReportPlagueModal = ({ plague }) => {
   const handleReportSubmit = async () => {
     // Emit the click sound
     useClickSound();
+
     // Show the modal with the reporting message
     setModalVisible(true);
 
-    const location = await Location.getCurrentPositionAsync({});
+    const location = await Location.getCurrentPositionAsync({}).catch((e) => {
+      setModalVisible(false);
+      Alert.alert("Sem sinal de gps!", "Relatorios não serão enviados");
+    });
 
     const report = Object.assign({}, location, {
       visited: false,
       fixed: false,
       plague: id,
-      date: Date.now(),
     });
 
-    store.sendPlagueReport(report).then((response) => {
-      if (response) {
-        // Return the app default after the report after the send sound
-        useSendSound().then(() => {
-          setModalVisible(false);
-        });
-      } else {
-        useErrorSound().then(() => {
-          setModalVisible(false);
-        });
-      }
-    });
+    store.storePlagueReport(report);
+
+    // Add some delay for the employee see the reporting screen
+    setTimeout(() => {
+      // Return the app default after the report after the send sound
+      useSendSound().then(() => {
+        setModalVisible(false);
+      });
+    }, DELAY_TIME);
   };
 
   return (

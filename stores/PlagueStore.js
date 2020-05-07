@@ -1,15 +1,11 @@
 import { types, flow } from "mobx-state-tree";
 import { database } from "../firebase/firebase";
-import { checkInternetConnection } from "react-native-offline";
-import { promiseTimeout } from "../utils/promiseTimeout";
-import * as SecureStore from "expo-secure-store";
+import { AsyncStorage } from "react-native";
 import { autorun } from "mobx";
 import NetInfo from "@react-native-community/netinfo";
 
-const IMMEDIATE_INTERNET_GET_TIMEOUT = 2000;
-const NOT_IMMEDIATE_INTERNET_GET_TIMEOUT = 2000;
-
 const ASYNC_STORAGE_KEY = "MISSING_SEND_REPORT";
+const ASYNC_STORAGE_KEY_PLAGUES = "STORE_PLAGUES";
 
 const ALERT_MESSAGES = {
   ERROR_SENDING: {
@@ -57,12 +53,6 @@ export const PlagueStore = types
     cachedReports: types.array(Report),
   })
   .actions((self) => {
-    const checkInternet = (timeout, url, method) => {
-      const promise = checkInternetConnection(url, 0, true, method);
-
-      return promiseTimeout(timeout, promise);
-    };
-
     const sendCachedReports = flow(function* () {
       self.loading = true;
 
@@ -75,12 +65,6 @@ export const PlagueStore = types
 
           return ALERT_MESSAGES.ERROR_SENDING;
         }
-
-        yield self.checkInternet(
-          NOT_IMMEDIATE_INTERNET_GET_TIMEOUT,
-          "https://google.com",
-          "HEAD"
-        );
 
         const reports = [...self.cachedReports];
 
@@ -98,20 +82,41 @@ export const PlagueStore = types
       }
     });
 
-    return { checkInternet, sendCachedReports };
+    return { sendCachedReports };
   })
   .actions((self) => {
     const fecthPlagues = flow(function* () {
       self.loading = true;
 
       try {
-        const data = yield database.ref("plagues").once("value");
-        const dataValues = data.val();
+        const { isConnected } = yield NetInfo.fetch();
 
-        if (dataValues !== null) {
-          const values = Object.values(dataValues);
+        // If the app has no connection we need to get the last plagues stored in the memory
+        if (!isConnected) {
+          let storedPlagues = yield AsyncStorage.getItem(
+            ASYNC_STORAGE_KEY_PLAGUES
+          );
+          if (storedPlagues) {
+            storedPlagues = JSON.parse(storedPlagues);
+            storedPlagues = Object.values(cachedReportsFromStorage);
 
-          self.plagues = values;
+            self.plagues = storedPlagues;
+          }
+        } else {
+          // Here we get the current plagues from the API and store it in the app memory
+          const data = yield database.ref("plagues").once("value");
+          const dataValues = data.val();
+
+          if (dataValues !== null) {
+            const values = Object.values(dataValues);
+
+            self.plagues = values;
+
+            yield AsyncStorage.setItem(
+              ASYNC_STORAGE_KEY_PLAGUES,
+              JSON.stringify(dataValues)
+            );
+          }
         }
 
         self.loading = false;
@@ -121,42 +126,22 @@ export const PlagueStore = types
       }
     });
 
-    const sendPlagueReport = flow(function* (report) {
+    const storePlagueReport = (report) => {
       try {
-        const { isConnected } = yield NetInfo.fetch();
-
-        if (!isConnected) {
-          self.cachedReports.push(report);
-          self.loading = false;
-
-          return false;
-        }
-
-        yield self.checkInternet(
-          IMMEDIATE_INTERNET_GET_TIMEOUT,
-          "https://farm-app-87f99.firebaseio.com",
-          "GET"
-        );
-
-        yield database.ref("reports").push(report);
-
-        self.loading = false;
-
-        return true;
-      } catch (e) {
-        // Not possible to send the data to the server, so we cache it to send in a better conection
         self.cachedReports.push(report);
+
         self.loading = false;
-        return false;
+      } catch (e) {
+        self.loading = false;
       }
-    });
+    };
 
     const initializeCachedReports = (reports) => {
       self.cachedReports = reports || [];
     };
     return {
       fecthPlagues,
-      sendPlagueReport,
+      storePlagueReport,
       initializeCachedReports,
     };
   })
@@ -164,7 +149,8 @@ export const PlagueStore = types
     afterCreate: () => {
       self.fecthPlagues();
 
-      SecureStore.getItemAsync(ASYNC_STORAGE_KEY)
+      // Get the sorted reporta that need to be sended
+      AsyncStorage.getItem(ASYNC_STORAGE_KEY)
         .then((reports) => {
           if (reports) {
             let cachedReportsFromStorage = JSON.parse(reports);
@@ -177,7 +163,8 @@ export const PlagueStore = types
             if (self.cachedReports.length) {
               const cachedReportsStorage = { ...self.cachedReports };
 
-              SecureStore.setItemAsync(
+              // Store the cached report to the mobile store, to persist the data
+              AsyncStorage.setItem(
                 ASYNC_STORAGE_KEY,
                 JSON.stringify(cachedReportsStorage)
               );
