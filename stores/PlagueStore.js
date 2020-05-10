@@ -168,6 +168,8 @@ export const PlagueStore = types
                 ASYNC_STORAGE_KEY,
                 JSON.stringify(cachedReportsStorage)
               );
+            } else {
+              AsyncStorage.removeItem(ASYNC_STORAGE_KEY);
             }
           });
         })
