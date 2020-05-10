@@ -29,7 +29,7 @@ const ReportPlagueModal = ({ plague }) => {
 
     const location = await Location.getCurrentPositionAsync({
       enableHighAccuracy: true,
-      accuracy: Location.Accuracy.BestForNavigation,
+      accuracy: Location.Accuracy.Highest,
     }).catch((e) => {
       setModalVisible(false);
       Alert.alert("Sem sinal de gps!", "Relatorios não serão enviados");
@@ -41,7 +41,10 @@ const ReportPlagueModal = ({ plague }) => {
 
     if (!location.coords.latitude || !location.coords.longitude) {
       useErrorSound().then(() => {
-        Alert.alert("Problema de localização", "Tentar novamente");
+        Alert.alert(
+          "Problema de localização",
+          "Ative a localizao do seu dispositivo e tente novamente"
+        );
       });
     } else {
       const report = Object.assign({}, location, {

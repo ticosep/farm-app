@@ -7,6 +7,7 @@ import {
 import { getSnapshot } from "mobx-state-tree";
 import Container from "./components/Container";
 import * as Location from "expo-location";
+import * as Permissions from "expo-permissions";
 import ReportPlagueModal from "./components/ReportPlagueModal";
 import ReportCachedModal from "./components/ReportCachedModal";
 
@@ -14,13 +15,22 @@ export default function App() {
   React.useEffect(() => {
     // Ask for user permission to use geolocation
     const getPermission = async () => {
-      let { status } = await Location.requestPermissionsAsync();
+      let { status } = await Permissions.askAsync(Permissions.LOCATION);
+
       if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
+        console.log("Permission to access location was denied");
       }
     };
 
+    const getHighAccuracy = async () => {
+      await Location.enableNetworkProviderAsync()
+        .then((event) => console.log(event))
+        .catch((e) => console.log(e));
+    };
+
     getPermission();
+
+    getHighAccuracy();
   }, []);
 
   // Use the plagues from the api to generate the buttons

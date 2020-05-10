@@ -20,7 +20,8 @@
       "bundleIdentifier": "com.citrussinensis.fielduser"
     },
     "android": {
-      "package": "com.citrussinensis.fielduser"
+      "package": "com.citrussinensis.fielduser",
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
     }
   }
 }
