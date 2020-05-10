@@ -28,6 +28,7 @@ const ReportPlagueModal = ({ plague }) => {
     setModalVisible(true);
 
     const location = await Location.getCurrentPositionAsync({
+      enableHighAccuracy: true,
       accuracy: Location.Accuracy.BestForNavigation,
     }).catch((e) => {
       setModalVisible(false);
