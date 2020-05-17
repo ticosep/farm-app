@@ -22,15 +22,7 @@ export default function App() {
       }
     };
 
-    const getHighAccuracy = async () => {
-      await Location.enableNetworkProviderAsync()
-        .then((event) => console.log(event))
-        .catch((e) => console.log(e));
-    };
-
     getPermission();
-
-    getHighAccuracy();
   }, []);
 
   // Use the plagues from the api to generate the buttons

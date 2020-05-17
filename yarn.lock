@@ -1433,6 +1433,11 @@
     wcwidth "^1.0.1"
     ws "^1.1.0"
 
+"@react-native-community/geolocation@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@react-native-community/geolocation/-/geolocation-2.0.2.tgz#ba8b40f560ead8d014740d1cdea970b33f19312e"
+  integrity sha512-tTNXRCgnhJBu79mulQwzabXRpDqfh/uaDqfHVpvF0nX4NTpolpy6mvTRiFg7eWFPGRArsnZz1EYp6rHfJWGgEA==
+
 "@react-native-community/netinfo@^5.8.0":
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-5.8.0.tgz#6afdc9fb8cc6ecf964949f39d03776f57017303a"
@@ -2688,6 +2693,11 @@ expo-sqlite@~8.1.0:
     "@expo/websql" "^1.0.1"
     "@types/websql" "^0.0.27"
     lodash "^4.17.15"
+
+expo-task-manager@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-8.1.0.tgz#54ffb17bfe8d337a39e99b0a079ecc1b8cd8e8d0"
+  integrity sha512-rhlf5RN8NNHUnQTLnqAKGbEKiWg3WO7Xr3CLSxClFaG0CEkqwlXnlBpeKRkDRe3OcdjBvvJDuCwZlNlc4S1/hw==
 
 expo-web-browser@~8.1.0:
   version "8.1.1"

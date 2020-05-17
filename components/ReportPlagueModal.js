@@ -27,42 +27,21 @@ const ReportPlagueModal = ({ plague }) => {
     // Show the modal with the reporting message
     setModalVisible(true);
 
-    const location = await Location.getCurrentPositionAsync({
-      enableHighAccuracy: true,
-      accuracy: Location.Accuracy.Highest,
-    }).catch((e) => {
-      setModalVisible(false);
-      Alert.alert("Sem sinal de gps!", "Relatorios não serão enviados");
+    const report = {
+      visited: false,
+      fixed: false,
+      plague: id,
+    };
 
-      useErrorSound();
+    store.storePlagueReport(report);
 
-      return;
-    });
-
-    if (!location.coords.latitude || !location.coords.longitude) {
-      useErrorSound().then(() => {
-        Alert.alert(
-          "Problema de localização",
-          "Ative a localizao do seu dispositivo e tente novamente"
-        );
+    // Add some delay for the employee see the reporting screen
+    setTimeout(() => {
+      // Return the app default after the report after the send sound
+      useSendSound().then(() => {
+        setModalVisible(false);
       });
-    } else {
-      const report = Object.assign({}, location, {
-        visited: false,
-        fixed: false,
-        plague: id,
-      });
-
-      store.storePlagueReport(report);
-
-      // Add some delay for the employee see the reporting screen
-      setTimeout(() => {
-        // Return the app default after the report after the send sound
-        useSendSound().then(() => {
-          setModalVisible(false);
-        });
-      }, DELAY_TIME);
-    }
+    }, DELAY_TIME);
   };
 
   return (

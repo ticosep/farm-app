@@ -1,11 +1,15 @@
-import { types, flow } from "mobx-state-tree";
+import { types, flow, getSnapshot } from "mobx-state-tree";
 import { database } from "../firebase/firebase";
 import { AsyncStorage } from "react-native";
 import { autorun } from "mobx";
 import NetInfo from "@react-native-community/netinfo";
+import * as TaskManager from "expo-task-manager";
+import * as Location from "expo-location";
 
 const ASYNC_STORAGE_KEY = "MISSING_SEND_REPORT";
 const ASYNC_STORAGE_KEY_PLAGUES = "STORE_PLAGUES";
+
+const LOCATION_TASK_NAME = "background-location-task";
 
 const ALERT_MESSAGES = {
   ERROR_SENDING: {
@@ -36,11 +40,15 @@ const Coord = types.model({
   speed: types.maybe(types.number),
 });
 
+const Position = types.model({
+  coords: types.optional(Coord, {}),
+  timestamp: types.maybe(types.number),
+});
+
 const Report = types.model({
   coords: types.optional(Coord, {}),
-  fixed: types.maybe(types.boolean),
-  mocked: types.maybe(types.boolean),
   timestamp: types.maybe(types.number),
+  fixed: types.maybe(types.boolean),
   visited: types.maybe(types.boolean),
   plague: types.maybe(types.string),
 });
@@ -49,6 +57,7 @@ export const PlagueStore = types
   .model({
     initialized: false,
     loading: false,
+    currentPosition: types.optional(Position, {}),
     plagues: types.array(Plague),
     cachedReports: types.array(Report),
   })
@@ -82,7 +91,11 @@ export const PlagueStore = types
       }
     });
 
-    return { sendCachedReports };
+    const setCurrentPosition = (position) => {
+      self.currentPosition = position;
+    };
+
+    return { sendCachedReports, setCurrentPosition };
   })
   .actions((self) => {
     const fecthPlagues = flow(function* () {
@@ -128,7 +141,9 @@ export const PlagueStore = types
 
     const storePlagueReport = (report) => {
       try {
-        self.cachedReports.push(report);
+        const currentPosition = getSnapshot(self.currentPosition);
+        const storedReport = Object.assign({}, report, currentPosition);
+        self.cachedReports.push(storedReport);
 
         self.loading = false;
       } catch (e) {
@@ -139,15 +154,37 @@ export const PlagueStore = types
     const initializeCachedReports = (reports) => {
       self.cachedReports = reports || [];
     };
+
+    const startLocationTask = flow(function* () {
+      TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+        if (error) {
+          console.log(error);
+          return;
+        }
+        if (data) {
+          const { locations } = data;
+          const lastPosition = locations[0];
+
+          self.setCurrentPosition(lastPosition);
+        }
+      });
+
+      yield Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        accuracy: Location.Accuracy.BestForNavigation,
+      });
+    });
     return {
       fecthPlagues,
       storePlagueReport,
       initializeCachedReports,
+      startLocationTask,
     };
   })
   .actions((self) => ({
     afterCreate: () => {
       self.fecthPlagues();
+
+      self.startLocationTask();
 
       // Get the sorted reporta that need to be sended
       AsyncStorage.getItem(ASYNC_STORAGE_KEY)
