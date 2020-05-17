@@ -3,13 +3,10 @@ import { database } from "../firebase/firebase";
 import { AsyncStorage } from "react-native";
 import { autorun } from "mobx";
 import NetInfo from "@react-native-community/netinfo";
-import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 
 const ASYNC_STORAGE_KEY = "MISSING_SEND_REPORT";
 const ASYNC_STORAGE_KEY_PLAGUES = "STORE_PLAGUES";
-
-const LOCATION_TASK_NAME = "background-location-task";
 
 const ALERT_MESSAGES = {
   ERROR_SENDING: {
@@ -43,11 +40,13 @@ const Coord = types.model({
 const Position = types.model({
   coords: types.optional(Coord, {}),
   timestamp: types.maybe(types.number),
+  mocked: types.maybe(types.boolean),
 });
 
 const Report = types.model({
   coords: types.optional(Coord, {}),
   timestamp: types.maybe(types.number),
+  mocked: types.maybe(types.boolean),
   fixed: types.maybe(types.boolean),
   visited: types.maybe(types.boolean),
   plague: types.maybe(types.string),
@@ -156,22 +155,14 @@ export const PlagueStore = types
     };
 
     const startLocationTask = flow(function* () {
-      TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
-        if (error) {
-          console.log(error);
-          return;
-        }
-        if (data) {
-          const { locations } = data;
-          const lastPosition = locations[0];
-
-          self.setCurrentPosition(lastPosition);
-        }
-      });
-
-      yield Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-        accuracy: Location.Accuracy.BestForNavigation,
-      });
+      yield Location.watchPositionAsync(
+        {
+          enableHighAccuracy: true,
+          accuracy: Location.Accuracy.BestForNavigation,
+          distanceInterval: 1,
+        },
+        self.setCurrentPosition
+      );
     });
     return {
       fecthPlagues,
